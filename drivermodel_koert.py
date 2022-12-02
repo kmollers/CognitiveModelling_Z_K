@@ -162,7 +162,7 @@ def vehicleUpdateNotSteering():
 
 ### Function to run a trial. Needs to be defined by students (section 2 and 3 of assignment)
 
-def runTrial(nrWordsPerSentence =5,nrSentences=3, nrSteeringMovementsWhenSteering=2, interleaving="word"): 
+def runTrial(nrWordsPerSentence =17,nrSentences=10, nrSteeringMovementsWhenSteering=4, interleaving="word"): 
     #print("hello world")
     resetParameters()
     locDrifts = []
@@ -180,18 +180,18 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3, nrSteeringMovementsWhenSteerin
             trialtime += retrievalTimeSentence
             for j in range(nrWordsPerSentence):
                 trialtime += (ms_perword+retrievalTimeWord)
-                print(trialtime)
+                #print(trialtime)
                 
                 ## update VEPOS
                 for update in range(round(trialtime/timeStepPerDriftUpdate)):
                     vepos += vehicleUpdateNotSteering()
                     locDrifts.append(vehicleUpdateNotSteering())
                     
-                    print(vepos)
+                   # print(vepos)
                     
                 
                 if j != (nrWordsPerSentence-1) or i != (nrSentences-1):
-                    print("arrived")
+                    #print("arrived")
                     for v in range(nrSteeringMovementsWhenSteering):
                         trialtime +=steeringUpdateTime
                         velocity = vehicleUpdateActiveSteering(vepos)
@@ -199,7 +199,7 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3, nrSteeringMovementsWhenSteerin
                         for d in range(round(steeringUpdateTime/timeStepPerDriftUpdate)):
                             vepos += velper50
                             locDrifts.append(velper50)
-                            print(f"velper:{velper50}")
+                           # print(f"velper:{velper50}")
                             
                             
                     totaltrialtime += trialtime
@@ -227,25 +227,121 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3, nrSteeringMovementsWhenSteerin
             
         
         ## they demand a very weird scatter, not in steps?   
-        fig, axs = plt.subplots(2)
-        axs[0].scatter(range(len(alldrifts)), alldrifts)
-        axs[1].scatter(range(len(allvepos)), allvepos)
+        #fig, axs = plt.subplots(2)
+        #axs[0].scatter(range(len(alldrifts)), alldrifts)
+        #axs[1].scatter(range(len(allvepos)), allvepos)
+        
+       # a = np.mean(alldrift)
+       # b = 
+        plot = plt.scatter(range(len(allvepos)), allvepos,c='yellow')
+        y = max(allvepos)
+        plt.text(10000,y-10,f"Mean Time per word in ms = {ms_perword:.1f}")
+        plt.text(10000,y-30,f"Mean Drift per ms = {numpy.mean(alldrifts):.6f} ")
+        plt.text(10000,y-50,f"Max Drift per ms = {numpy.max(alldrifts):.6f}")
+
+
         plt.show()
         
         print(len(alldrifts))
         print(totaltrialtime)        
    
-    return # totaltrialtime, locDrifts, vepos
+    return plot # totaltrialtime, locDrifts, vepos
+                
+for i in range(10):
+    plt.subplot(2,5,i+1)
+    plot = runTrial()
+    #axs[i].plot
+    plt.show()        
+    
+
+            
+def runsenTrial(nrWordsPerSentence =17,nrSentences=10, nrSteeringMovementsWhenSteering=4, interleaving="sentence"): 
+    #print("hello world")
+    resetParameters()
+    locDrifts = []
+    totaltrialtime = 0
+    vepos = startingPositionInLane
+    WPM = float(numpy.random.normal(39.33, 10.3, 1))
+    ms_perword = (60/WPM)*1000
+    
+    
+    if interleaving=="sentence":
+        trialtime = 0
+       
+        for i in range(nrSentences):
+            
+            trialtime += retrievalTimeSentence
+            for j in range(nrWordsPerSentence):
+                trialtime += ms_perword
+            
+            ## update VEPOS
+            for update in range(round(trialtime/timeStepPerDriftUpdate)):
+                vepos += vehicleUpdateNotSteering()
+                locDrifts.append(vehicleUpdateNotSteering())
+                
+                print(vepos)
                 
             
+            if  i != (nrSentences-1):
+                print("arrived")
+                for v in range(nrSteeringMovementsWhenSteering):
+                    trialtime +=steeringUpdateTime
+                    velocity = vehicleUpdateActiveSteering(vepos)
+                    velper50 = (velocity / 1000) *50
+                    for d in range(round(steeringUpdateTime/timeStepPerDriftUpdate)):
+                        vepos += velper50
+                        locDrifts.append(velper50)
+                        print(f"velper:{velper50}")
+                        
+                        
+                totaltrialtime += trialtime
+                
+                
+                trialtime=0
+                
+                
+                
+            else:
+                totaltrialtime += trialtime
+                trialtime = 0
+        
+        
+        ## this code is not necessary at all if we can work with steps
+        alldrifts = []
+        for multiple in locDrifts:
+            for x in range(50):
+                alldrifts.append(multiple/50)
+        allvepos = []
+        vep = startingPositionInLane
+        for vepski in alldrifts:
+            vep+=vepski
+            allvepos.append(vep)
+            
+        
+        ## they demand a very weird scatter, not in steps?   
+        #fig, axs = plt.subplots(2)
+        #axs[0].scatter(range(len(alldrifts)), alldrifts)
+        #axs[1].scatter(range(len(allvepos)), allvepos)
+        
+       # a = np.mean(alldrift)
+       # b = 
+        
+        plot = plt.scatter(range(len(allvepos)), allvepos,c='yellow')
+        y = max(allvepos)
+        plt.text(6000,y-1,f"Mean Time per word in ms = {ms_perword:.1f}")
+        plt.text(6000,y-2,f"Mean Drift per ms = {numpy.mean(alldrifts):.6f}")
+        plt.text(6000,y-3,f"Max Drift per ms = {numpy.max(alldrifts):.6f}")
+
+
+        plt.show()
+        
+        print(len(alldrifts))
+        print(totaltrialtime)        
+   
+    return plot # totaltrialtime, locDrifts, vepos
 
 	                    
-"""                
-    drifts = round(trialtime / 50)
-    for d in range(drifts):
-        locDrifts.append(vehicleUpdateNotSteering())
-"""    
-	
+
 	
 
 
@@ -256,7 +352,15 @@ def runSimulations(nrSims = 100):
     print("hello world")
 
 
+#fig, axs = plt.subplots(2,5)
+#axs = axs.ravel()
 
+
+for i in range(10):
+    plt.subplot(2,5,i+1)
+    plot = runsenTrial()
+    #axs[i].plot
+    plt.show()
 	
 
 
