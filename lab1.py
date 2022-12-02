@@ -115,6 +115,10 @@ def example4():
                     orderlist.append(order)   
     return totallist, orderlist
 
+
+#### NOT COMPLETE
+
+
 def example5():
     print("Order: Start -> Perceptual -> Cognitive -> Motor")
     comblist = ["fast", "middle", "slow"]
@@ -149,7 +153,15 @@ def example5():
                 EP= EP*0.5
             b = cognitivestep(j)*2
             for n in comblist:
-                
+                if j == "fast":
+                    EP= EP*3
+                    EP= EP*3
+                elif j =="middle":
+                    EP= EP*2
+                    EP= EP*2
+                elif j=="slow":
+                    EP= EP*0.5
+                    EP= EP*0.5                
                 
                 
                 c = motorstep(n) #because there are two motor steps in the new process, comparing stimuli, motor prep
@@ -159,11 +171,14 @@ def example5():
                 orderlist.append(order) 
                 EPlist.append(EP)
                 EP = 0.01
-    return orderlist,totallist,EPlist
+    return EPlist,totallist,orderlist
     
                     
                                
-
+import matplotlib.pyplot as plt
+b,a,c = example5()
+plt.scatter(a,b)
+plt.show
 
 
 
