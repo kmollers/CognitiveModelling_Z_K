@@ -103,7 +103,7 @@ def resetParameters():
     startvelocity = 0 	#a global parameter used to store the lateral velocity of the car
     wordsPerMinuteMean = 39.33
     wordsPerMinuteSD = 10.3
-
+ 
 	
 
 
@@ -167,11 +167,15 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
   resetParameters()
   locDrifts = []
   trialTime = 0
+  startvelocity = 0
+  position = startingPositionInLane
   if interleaving == 'word':
         trialtime= 0
         firstWord=1
         vehicleUpdateNotSteering()
-        i,j=0
+        i=0 
+        j=0
+        n=0
         while (i < nrSentences): ### count sum of time for all sentences
             i=i+1
             firstWord=1
@@ -183,7 +187,28 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
                     trialtime= trialTime + retrievalTimeWord 
                 firstWord=0
 
-        if(trialTime % 50 == 0)  ### check the drift
+            if(trialTime % 50 == 0):  ### check the drift
+                position=position+vehicleUpdateNotSteering()
+                locDrifts.append(position)
+
+            
+
+            if(i<nrSentences):
+             while(n<nrSteeringMovementsWhenSteering):
+                n=n+1
+                trialtime = trialtime + steeringUpdateTime
+                if(trialTime % 50 == 0):  ### check the drift
+                       position= position+vehicleUpdateNotSteering()
+                       locDrifts.append(position)
+                       startvelocity = startvelocity + vehicleUpdateActiveSteering(position)
+        
+        print(trialtime)
+        plt.scatter(locDrifts, locDrifts)
+        plt.show()
+    
+        
+print(runTrial())
+
 	
 	
 
