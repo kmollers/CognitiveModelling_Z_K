@@ -1,4 +1,4 @@
-### 
+## 
 ### This code is developed by Christian P. Janssen of Utrecht University
 ### It is intended for students from the Master's course Cognitive Modeling
 ### Large parts are based on the following research papers:
@@ -14,9 +14,8 @@
 ### import packages
 ###
 
-import numpy
+import numpy 
 import matplotlib.pyplot as plt
-
 
 ###
 ###
@@ -64,7 +63,7 @@ retrievalTimeSentence = 300 #ms. ## how long does it take to retrieve a sentence
 timePerWord = 0  ### ms ## How much time does one word take
 wordsPerMinuteMean = 39.33   # parameters that control typing speed: when typing two fingers, on average you type this many words per minute. From Jiang et al. (2020; CHI)
 wordsPerMinuteSD = 10.3 ## this si standard deviation (Jiang et al, 2020)
-
+strategy="word"
 
 ## Function to reset all parameters. Call this function at the start of each simulated trial. Make sure to reset GLOBAL parameters.
 def resetParameters():
@@ -83,7 +82,7 @@ def resetParameters():
     global startvelocity
     global wordsPerMinuteMean
     global wordsPerMinuteSD
-    
+    global strategy
     timePerWord = 0  ### ms
 
     retrievalTimeWord = 200   #ms
@@ -103,7 +102,7 @@ def resetParameters():
     startvelocity = 0 	#a global parameter used to store the lateral velocity of the car
     wordsPerMinuteMean = 39.33
     wordsPerMinuteSD = 10.3
- 
+
 	
 
 
@@ -162,63 +161,164 @@ def vehicleUpdateNotSteering():
 
 
 ### Function to run a trial. Needs to be defined by students (section 2 and 3 of assignment)
+def runTrial(nrWordsPerSentence =5,nrSentences=3, nrSteeringMovementsWhenSteering=2, interleaving=strategy): 
+    #print("hello world")
+    resetParameters()
+    locDrifts = []
+    totaltrialtime = 0
+    vepos = startingPositionInLane
+    WPM = float(numpy.random.normal(39.33, 10.3, 1))
+    ms_perword = (60/WPM)*1000
+    
+    if interleaving=="drivingOnly":
 
-def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering=2, interleaving="word"): 
-  resetParameters()
-  locDrifts = []
-  trialTime = 0
-  startvelocity = 0
-  position = startingPositionInLane
-  if interleaving == 'word':
-        trialtime= 0
-        firstWord=1
-        vehicleUpdateNotSteering()
-        i=0 
-        j=0
-        n=0
-        while (i < nrSentences): ### count sum of time for all sentences
-            i=i+1
-            firstWord=1
-            while (j<nrWordsPerSentence): ### count sum of time for all words within sentence
-                j=j+1
-                if(firstWord == 1):
-                    trialtime= trialtime + retrievalTimeSentence
+       for i in range(nrSentences):
+            
+            timeDriving=0 
+            for j in range(nrWordsPerSentence):
+                timeDriving += (ms_perword) ## do not retreave time for word since car is only driving
+                print(timeDriving)
+                
+                ## update VEPOS , exclude not steering === not driving ???
+                for update in range(round(timeDriving/timeStepPerDriftUpdate)):
+                    vepos += vehicleUpdateNotSteering()
+                    locDrifts.append(vehicleUpdateNotSteering())
+                    locDrifts.append(vepos)
+                    print(vepos)
+                    
+                
+                if j != (nrWordsPerSentence-1) or i != (nrSentences-1):
+                    print("arrived")
+                    for v in range(nrSteeringMovementsWhenSteering):
+                        timeDriving +=steeringUpdateTime
+                        velocity = vehicleUpdateActiveSteering(vepos)
+                        velper50 = (velocity / 1000) *50
+                        for d in range(round(steeringUpdateTime/timeStepPerDriftUpdate)):
+                            vepos += velper50
+                            locDrifts.append(velper50)
+                            print(f"velper:{velper50}")
+                            
+                            
+                    totaltrialtime += timeDriving
+                    trialtime=0
+
+        
+    if interleaving=="none":
+          for i in range(nrSentences):
+            
+            timeDriving=0 
+            for j in range(nrWordsPerSentence):
+                ##timeDriving += (ms_perword) ##  no retrieval time since car is noy typing
+                print(timeDriving)
+                
+                ## update VEPOS
+                ##for update in range(round(timeDriving/timeStepPerDriftUpdate)):
+                ##    vepos += vehicleUpdateNotSteering()
+                 ##   timeDriving += (ms_perword+retrievalTimeWord)
+                 ##   locDrifts.append(vehicleUpdateNotSteering())
+                ##    print(vepos)
+                    
+                
+                ##if j != (nrWordsPerSentence-1) or i != (nrSentences-1):
+                   # print("arrived")
+                for v in range(nrSteeringMovementsWhenSteering):
+                    timeDriving +=steeringUpdateTime
+                    velocity = vehicleUpdateActiveSteering(vepos)
+                    velper50 = (velocity / 1000) *50
+                    for d in range(round(steeringUpdateTime/timeStepPerDriftUpdate)):
+                        vepos += velper50
+                        locDrifts.append(velper50)
+                        print(f"velper:{velper50}")
+                            
+                            
+                    totaltrialtime += timeDriving
+                    trialtime=0
+
+    if interleaving=="word":
+        trialtime = 0
+       
+        for i in range(nrSentences):
+            
+            trialtime += retrievalTimeSentence
+            for j in range(nrWordsPerSentence):
+                trialtime += (ms_perword+retrievalTimeWord)
+                print(trialtime)
+                
+                ## update VEPOS
+                for update in range(round(trialtime/timeStepPerDriftUpdate)):
+                    vepos += vehicleUpdateNotSteering()
+                    locDrifts.append(vehicleUpdateNotSteering())
+                    
+                    print(vepos)
+                    
+                
+                if j != (nrWordsPerSentence-1) or i != (nrSentences-1):
+                    print("arrived")
+                    for v in range(nrSteeringMovementsWhenSteering):
+                        trialtime +=steeringUpdateTime
+                        velocity = vehicleUpdateActiveSteering(vepos)
+                        velper50 = (velocity / 1000) *50
+                        for d in range(round(steeringUpdateTime/timeStepPerDriftUpdate)):
+                            vepos += velper50
+                            locDrifts.append(velper50)
+                            print(f"velper:{velper50}")
+                            
+                            
+                    totaltrialtime += trialtime
+                    
+                    
+                    trialtime=0
+                    
+                    
+                    
                 else:
-                    trialtime= trialTime + retrievalTimeWord 
-                firstWord=0
-
-            if(trialTime % 50 == 0):  ### check the drift
-                position=position+vehicleUpdateNotSteering()
-                locDrifts.append(position)
-
+                    totaltrialtime += trialtime
+                    trialtime = 0
+        
+        
+        ## this code is not necessary at all if we can work with steps
+    alldrifts = []
+    for multiple in locDrifts:
+        for x in range(50):
+            alldrifts.append(multiple/50)
+    allvepos = []
+    vep = startingPositionInLane
+    for vepski in alldrifts:
+        vep+=vepski
+        allvepos.append(vep)
+            
+        
+        ## they demand a very weird scatter, not in steps?   
+    fig, axs = plt.subplots(2)
+    axs[0].scatter(range(len(alldrifts)), alldrifts)
+    axs[1].scatter(range(len(allvepos)), allvepos)
+    plt.show()
+        
+    print(len(alldrifts))
+    print(totaltrialtime)        
+        ##return  [totaltrialtime, locDrifts, vepos]
+   
+                
             
 
-            if(i<nrSentences):
-             while(n<nrSteeringMovementsWhenSteering):
-                n=n+1
-                trialtime = trialtime + steeringUpdateTime
-                if(trialTime % 50 == 0):  ### check the drift
-                       position= position+vehicleUpdateNotSteering()
-                       locDrifts.append(position)
-                       startvelocity = startvelocity + vehicleUpdateActiveSteering(position)
-        
-        print(trialtime)
-        plt.scatter(locDrifts, locDrifts)
-        plt.show()
-    
-        
-print(runTrial())
-
+	                    
+"""                
+    drifts = round(trialtime / 50)
+    for d in range(drifts):
+        locDrifts.append(vehicleUpdateNotSteering())
+"""    
 	
-	
-
-
 
 
 ### function to run multiple simulations. Needs to be defined by students (section 3 of assignment)
 def runSimulations(nrSims = 100):
-    print("hello world")
+    strategies = ["none"]
+    for typ in strategies:
+        runTrial(interleaving=typ)
+
+print("hello world")
+
+runSimulations()
 
 
-
-
+	
