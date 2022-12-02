@@ -172,10 +172,10 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
         firstWord=1
         vehicleUpdateNotSteering()
         i,j=0
-        while (i < nrSentences):
+        while (i < nrSentences): ### count sum of time for all sentences
             i=i+1
             firstWord=1
-            while (j<nrWordsPerSentence):
+            while (j<nrWordsPerSentence): ### count sum of time for all words within sentence
                 j=j+1
                 if(firstWord == 1):
                     trialtime= trialtime + retrievalTimeSentence
@@ -183,7 +183,7 @@ def runTrial(nrWordsPerSentence =5,nrSentences=3,nrSteeringMovementsWhenSteering
                     trialtime= trialTime + retrievalTimeWord 
                 firstWord=0
 
-	
+        if(trialTime % 50 == 0)  ### check the drift
 	
 	
 
